@@ -7,7 +7,7 @@ import xml.etree.ElementTree as eltree
 # http://www.forkrobotics.com/2014/10/dynamic-dns-with-namesilo-and-powershell/
 
 # Variables
-api_key = "043884eee31091509a0849"
+api_key = "xxxxxxxx"
 domain = "r-ben.com"
 record = "freedom"
 
