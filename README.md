@@ -1,16 +1,16 @@
 # NameSilo API Python3 Implementation - Specifically for DDNS support.
 
-NameSilo Dynamic DNS IP Address Updater.  
+NameSilo Dynamic DNS IP Address Updater.
 Email integration is provided by SendGrid (https://www.sendgrid.com).
 
-DATE: 19 AUG 2017  
+DATE: 19 AUG 2017
 VERSION: 1.088
 
 # REQUIRES
  - Python >= 3.5.2,
- - Requests (http://docs.python-requests.org/)  
+ - Requests (http://docs.python-requests.org/)
   `pip install requests`
- - SendGrid (https://github.com/sendgrid/sendgrid-python) for basic email support if desired.  
+ - SendGrid (https://github.com/sendgrid/sendgrid-python) for basic email support if desired.
   `pip install sendgrid`
 
 # Copyright (c) 2017 Benjamin Rosner
@@ -55,9 +55,9 @@ subject = "DNS update notification, timestamped: " + strftime('%x %H:%M:%S')  # 
 1. Generate and save an API key from NameSilo. See [NameSilo](https://www.namesilo.com/Support/Account-Options) for help.
 2. Generate and save an API key from SendGrid. See ...
 3. Create copies of the script as needed and configure them.
-4. Export required ENVIRONMENT VARIABLES: NAMESILO_API_KEY and SENDGRID_API_KEY 
+4. Export required ENVIRONMENT VARIABLES: NAMESILO_API_KEY and SENDGRID_API_KEY
 5. Save the python file and run it using `python <whateverYouNamedIt>.py`.  Some systems may run two versions of python: `python3 <whateverYouNamedIt>.py`
-6. (optional) Add this command to cron or scheduler depending, ya know? 
+6. (optional) Add this command to cron or scheduler depending, ya know?
 
 You can also use this as a class in your own programs, though it is a rather immature implementation as of writing.
 
@@ -65,4 +65,4 @@ You can also use this as a class in your own programs, though it is a rather imm
 Create an issue and I'm happy to help :)
 
 # License
-[GNU GENERAL PUBLIC LICENSE v3](LICENSE)
+[MIT License](LICENSE)
