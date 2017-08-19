@@ -1,44 +1,68 @@
-# Dynamic DNS for NameSilo.com
+# NameSilo API Python3 Implementation - Specifically for DDNS support.
 
-IN DEVELOPMENT.
-Python API implementation for NameSilo.  Primarily used as a Dynamic DNS update, or DDNS tool, this can update your home's dynamic IP into a nice domain.  EVERYTHING AFTER THIS LINE IS OLD AND HASN'T BEEN TOUCHED... yet. ever. likely never.
+NameSilo Dynamic DNS IP Address Updater.  
+Email integration is provided by SendGrid (https://www.sendgrid.com).
 
-# Requirements
-[Python 3](https://www.python.org/downloads/)
+DATE: 19 AUG 2017  
+VERSION: 1.088
 
-[Requests Python Package](https://pypi.python.org/pypi/requests)
+# REQUIRES
+ - Python >= 3.5.2,
+ - Requests (http://docs.python-requests.org/)  
+  `pip install requests`
+ - SendGrid (https://github.com/sendgrid/sendgrid-python) for basic email support if desired.  
+  `pip install sendgrid`
 
-`pip install requests`
+# Copyright (c) 2017 Benjamin Rosner
 
-A [NameSilo.com](https://www.namesilo.com/) account with records that need DDNS support.
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+
+## Configuration
+- Example configuration for a single domain with hosts (without email notification):
+```
+ record_ttl = '7207'
+ domains_and_hosts = (
+     ["namesilo.com", ["", "www", "mail"]]  # This will update namesilo.com, www.namesilo.com, and mail.namesilo.com.
+ )
+```
+- Example configuration for multiple domains and hosts (without email notification):
+```
+ record_ttl = '7207'
+ domains_and_hosts = (
+     ["namesilo.com", ["www", "mail"]],  # This will update www.namesilo.com, and mail.namesilo.com.
+     ["CNN.com", ["", "www"]],  # This will update CNN.com, and www.CNN.com.
+     ["NPR.org", ["giving", "charity"]],  #  This will update giving.NPR.org, and charity.NPR.org.
+     ["example.org", [""]]  #  This will update example.org.
+ )
+```
+### Additional configuration lines for email using SendGrid.com
+```
+send_mail = True  # Either "True" or "False"
+send_time = int(strftime('%I')) % 8 == 0  # Send an email at 8AM and 8PM.  Set to True to always send.
+email_from_address = "someone@somedomain.tld"
+email_from_name = "NameServer Systems"
+email_to_addresses = ["jane.doe@company", "john.doe@company", "my.manager@somebusiness.com"]  # comma separated.
+subject = "DNS update notification, timestamped: " + strftime('%x %H:%M:%S')  # Subject line.
+```
 
 # How To
 
-Generate and save an API key from NameSilo. See [NameSilo](https://www.namesilo.com/Support/Account-Options) for help.
+1. Generate and save an API key from NameSilo. See [NameSilo](https://www.namesilo.com/Support/Account-Options) for help.
+2. Generate and save an API key from SendGrid. See ...
+3. Create copies of the script as needed and configure them.
+4. Export required ENVIRONMENT VARIABLES: NAMESILO_API_KEY and SENDGRID_API_KEY 
+5. Save the python file and run it using `python <whateverYouNamedIt>.py`.  Some systems may run two versions of python: `python3 <whateverYouNamedIt>.py`
+6. (optional) Add this command to cron or scheduler depending, ya know? 
 
-Edit `dynamic_dns_updater_for_namesilo.com.py` file in the variables section, being sure not to modify the code.
+You can also use this as a class in your own programs, though it is a rather immature implementation as of writing.
 
-```
-# Variables
-api_key = "xxxxxxxx" <- This is the API you generated from above.
-domain = "r-ben.com" <- The domain that contains the record you want to update.
-record = "freedom" <- The actual A record to be checked and updated.
-```
-
-Save the python file and run it using `python3 dynamic_dns_updater_for_namesilo.com.py`.
-
-Add this as a scheduled task or cron job depending on your OS.
-
-# Maintainer
-Benjamin Rosner
-
-# Bugs or Issues?
-Please use the Issues button to submit bug reports or other issues.
-
-If you've fixed the code please issue a pull request and indicate the issue number(s) resolved. (e.g. Resolves #1 by doing X Y and Z.)
+# Questions or Bugs
+Create an issue and I'm happy to help :)
 
 # License
 [GNU GENERAL PUBLIC LICENSE v3](LICENSE)
-
-# Credits
-[Concept and Inspiration](http://www.forkrobotics.com/2014/10/dynamic-dns-with-namesilo-and-powershell/)
