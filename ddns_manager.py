@@ -1,6 +1,7 @@
 import os
 import xml.etree.ElementTree as ETree
 from time import strftime
+import ipaddress
 
 import requests
 from sendgrid import *
@@ -149,17 +150,27 @@ class NameSilo_APIv1:
                 )
             )
         log('{} records retrieved for {}'.format(len(self.current_records), self.domain))
+        log(self.current_records)
 
     def dynamic_dns_update(self, ip):
         """Dynamic DNS updater"""
-        log('DDNS update starting for domain: {}'.format(self.domain))
+        try:
+            ip_address = ipaddress.ip_address(ip)
+        except ValueError:
+            log('{} is not a valid IPv4/IPv6 address'.format(ip))
+            return
+        if(ip_address.version == 4):
+            record_type = 'A'
+        else:
+            record_type = 'AAAA'
+        log('DDNS update starting for domain: {} and record type {}'.format(self.domain, record_type))
         # Generator for hosts that require an A record update.
         hosts_requiring_updates = (
             record for record
             in self.current_records
             if record['host'] in self.hosts.keys()
                and (
-                   record['type'] == 'A'
+                   record['type'] == record_type
                    and record['value'] != ip
                )
         )
@@ -197,11 +208,10 @@ class NameSilo_APIv1:
 #######################################################################################################################
 # In development, too tired.
 _log = []
-_current_ip = _web_worker.get('https://api.ipify.org/?format=json').json()['ip']  # GET our current IP.
 
 
 def log(message):
-    #  print(message)
+    print(message)
     _log.append(message)
 
 
@@ -235,4 +245,6 @@ def send_message():
     sg.client.mail.send.post(request_body=build_message())
 
 
-update_records()
+if __name__=="__main__":
+    _current_ip = _web_worker.get('https://api.ipify.org/?format=json').json()['ip']  # GET our current IP.
+    update_records()
