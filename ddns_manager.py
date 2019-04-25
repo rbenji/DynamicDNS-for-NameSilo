@@ -150,6 +150,7 @@ class NameSilo_APIv1:
                 )
             )
         log('{} records retrieved for {}'.format(len(self.current_records), self.domain))
+        log(self.current_records)
 
     def dynamic_dns_update(self, ip):
         """Dynamic DNS updater"""
@@ -207,11 +208,10 @@ class NameSilo_APIv1:
 #######################################################################################################################
 # In development, too tired.
 _log = []
-_current_ip = _web_worker.get('https://api.ipify.org/?format=json').json()['ip']  # GET our current IP.
 
 
 def log(message):
-    #  print(message)
+    print(message)
     _log.append(message)
 
 
@@ -245,4 +245,6 @@ def send_message():
     sg.client.mail.send.post(request_body=build_message())
 
 
-update_records()
+if __name__=="__main__":
+    _current_ip = _web_worker.get('https://api.ipify.org/?format=json').json()['ip']  # GET our current IP.
+    update_records()
