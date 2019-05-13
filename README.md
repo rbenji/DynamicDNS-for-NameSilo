@@ -27,7 +27,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 ```
  record_ttl = '7207'
  domains_and_hosts = (
-     ["namesilo.com", ["", "www", "mail"]]  # This will update namesilo.com, www.namesilo.com, and mail.namesilo.com.
+     ["namesilo.com", ["", "www", "mail"]],  # This will update namesilo.com, www.namesilo.com, and mail.namesilo.com.
  )
 ```
 - Example configuration for multiple domains and hosts (without email notification):
