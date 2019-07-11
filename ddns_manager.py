@@ -68,7 +68,7 @@ subject = "DNS update notification, timestamped: " + strftime('%x %H:%M:%S')  # 
 #######################################################################################################################
 namesilo_api_key = os.environ.get('NAMESILO_API_KEY')
 NAMESILO_COM_API = 'https://www.namesilo.com/api'
-NAMESILO_API_IMPLEMENTED_OPERATIONS = {'dnsListRecords', 'dnsUpdateRecord'}
+NAMESILO_API_IMPLEMENTED_OPERATIONS = {'dnsListRecords', 'dnsUpdateRecord', 'dnsAddRecord', 'dnsDeleteRecord'}
 
 _web_worker = requests.session()  # Requests session instance.
 
@@ -141,6 +141,7 @@ class NameSilo_APIv1:
         """Retrieve current Resource Records from NameSilo for self.domain."""
         log('Retrieving records for {}'.format(self.domain))
         current_records = self._api_connection('dnsListRecords')
+        self.current_records = []
         for current_resource_record in current_records.iter('resource_record'):
             self.current_records.append(
                 dict(
@@ -164,7 +165,7 @@ class NameSilo_APIv1:
         else:
             record_type = 'AAAA'
         log('DDNS update starting for domain: {} and record type {}'.format(self.domain, record_type))
-        # Generator for hosts that require an A record update.
+        # Generator for hosts that require an record update.
         hosts_requiring_updates = (
             record for record
             in self.current_records
@@ -198,8 +199,78 @@ class NameSilo_APIv1:
                 pass
             _count += 1
             log('DDNS successfully updated {}'.format(host['host']))
-        log('DDNS update complete for {}.  {} hosts required updates. {} errors.'.format(self.domain, _count, _failed))
+        log('DDNS update complete for {}.  {} hosts required updates. {} errors.'.format(
+            self.domain, _count, _failed))
 
+        # List for hosts that reuire an record create.
+        hosts_requiring_adds = [
+            host for host
+            in self.hosts.keys()
+            if not any(record.get('host', None) == host for record in self.current_records)
+        ]
+        log('DDNS add required for {}'.format(hosts_requiring_adds))
+        for host in hosts_requiring_adds:
+            self.dynamic_dns_add(self.hosts[host], ip, record_type)
+
+    def dynamic_dns_add(self, host_without_domain, value, type):
+        __api_params = {
+            'rrtype': type,
+            'rrhost': host_without_domain,
+            'rrvalue': value,
+            'rrttl': record_ttl,
+        }
+        try:
+            self._api_connection('dnsAddRecord', **__api_params)
+        except ValueError:
+            log('DDNS failed to add {}, type {}, value {}'.format(host_without_domain, 
+            type, value))
+            return
+        except NotImplementedError:
+            log('DDNS failed to add {}, type {}, value {}'.format(host_without_domain, 
+            type, value))
+            return
+        log('DDNS successfully add {}, type {}, value {}'.format(host_without_domain, 
+            type, value))
+        self.retrieve_resource_records()  # re-populate.
+
+    # Any of the parameter can be None and if all of the parameters are None, 
+    # means delete all records for this domain
+    def dynamic_dns_delete(self, host_without_domain=None, value=None, type=None):
+        log('DDNS delete starting for domain: {}, host {}, type {}, value {}'.format(
+            self.domain, host_without_domain, type, value))
+        hosts_requiring_deletes = []
+        for record in self.current_records:
+            flag = True
+            if host_without_domain:
+                flag = flag and (record['host'] == (str.join('.', 
+                [host_without_domain, self.domain]) if host_without_domain != '' else self.domain))
+            if value:
+                flag = flag and (record['value'] == value)
+            if type:
+                flag = flag and (record['type'] == type)
+            if flag:
+                hosts_requiring_deletes.append(record)
+        _count = 0
+        _failed = 0
+        for host in hosts_requiring_deletes:
+            __api_params = {
+                'rrid': host['record_id'],
+            }
+            try:
+                self._api_connection('dnsDeleteRecord', **__api_params)
+            except ValueError:
+                log('DDNS failed to delete {}'.format(host_without_domain))
+                _failed += 1
+                pass
+            except NotImplementedError:
+                log('DDNS failed to delete {}'.format(host_without_domain))
+                _failed += 1
+                pass
+            _count += 1
+            log('DDNS successfully delete {}'.format(host_without_domain))
+        log('DDNS delete complete for {}.  {} hosts required updates. {} errors.'.format(
+            self.domain, _count, _failed))
+        self.retrieve_resource_records()  # re-populate.
 
 #######################################################################################################################
 #######################################################################################################################
