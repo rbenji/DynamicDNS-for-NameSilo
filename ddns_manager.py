@@ -153,26 +153,29 @@ class NameSilo_APIv1:
         log('{} records retrieved for {}'.format(len(self.current_records), self.domain))
         log(self.current_records)
 
-    def dynamic_dns_update(self, ip):
+    def dynamic_dns_update(self, value, type=None):
         """Dynamic DNS updater"""
-        try:
-            ip_address = ipaddress.ip_address(ip)
-        except ValueError:
-            log('{} is not a valid IPv4/IPv6 address'.format(ip))
-            return
-        if(ip_address.version == 4):
-            record_type = 'A'
-        else:
-            record_type = 'AAAA'
-        log('DDNS update starting for domain: {} and record type {}'.format(self.domain, record_type))
+        # If no type given, assume an IP value in, otherwise, type must be given
+        # Because we don't know what kind of type user want
+        if not type:
+            try:
+                ip_address = ipaddress.ip_address(value)
+            except ValueError:
+                log('{} is not a valid IPv4/IPv6 address, type must be given'.format(value))
+                return
+            if(ip_address.version == 4):
+                type = 'A'
+            else:
+                type = 'AAAA'
+        log('DDNS update starting for domain: {} and record type {}'.format(self.domain, type))
         # Generator for hosts that require an record update.
         hosts_requiring_updates = (
             record for record
             in self.current_records
             if record['host'] in self.hosts.keys()
                and (
-                   record['type'] == record_type
-                   and record['value'] != ip
+                   record['type'] == type
+                   and record['value'] != value
                )
         )
 
@@ -184,7 +187,7 @@ class NameSilo_APIv1:
             __api_params = {
                 'rrid': host['record_id'],
                 'rrhost': self.hosts[host['host']],
-                'rrvalue': ip,
+                'rrvalue': value,
                 'rrttl': record_ttl,
             }
             try:
@@ -210,7 +213,7 @@ class NameSilo_APIv1:
         ]
         log('DDNS add required for {}'.format(hosts_requiring_adds))
         for host in hosts_requiring_adds:
-            self.dynamic_dns_add(self.hosts[host], ip, record_type)
+            self.dynamic_dns_add(self.hosts[host], value, type)
 
     def dynamic_dns_add(self, host_without_domain, value, type):
         __api_params = {
